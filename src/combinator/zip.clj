@@ -55,18 +55,18 @@
 (defn branch?
   "Returns true if the node at loc is a branch"
   [^ZipperLocation loc]
-  (vector? (.node loc)))
+  (seq? (.node loc)))
 
 (defn children
   "Returns a seq of the children of node at loc, which must be a branch"
   [^ZipperLocation loc]
-  (seq (.node loc)))
+  (.node loc))
 
 (defn make-node
   "Returns a new branch node, given an existing node and new children.
   The loc is only used to supply the constructor."
   [^ZipperLocation loc node children]
-  (apply tuple children))
+  children)
 
 (defn path
   "Returns a seq of nodes leading to this loc"
