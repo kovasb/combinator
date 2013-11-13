@@ -62,10 +62,8 @@
 
   (time
    (dotimes [x 10000]
-     (match [1 2] [([1 _] :seq)] 1)))
+     (match [1 2] [([1 _] :seq)] 1))))
 
-
-  )
 
 (comment
 
@@ -149,6 +147,8 @@
             nil))
         nil)))
 
+(comment
+
    (time (dotimes [ x 100000]
            (rule5 [:fib 1])))
    "Elapsed time: 5.011 msecs"
@@ -172,6 +172,116 @@
   (time (dotimes [ x 100000]
           (rule4 [:fib 1])))
   "Elapsed time: 8.128 msecs"
+
+  (comment
+
+   (let [v (fv/vector 1 2)]
+     (time (dotimes [_ 1000000]
+             (conj v 1)))))
+  "Elapsed time: 50.078 msecs"
+
+   (let [v (vector 1 2)]
+    (time (dotimes [_ 1000000]
+            (conj v 1))))
+   "Elapsed time: 33.156 msecs"
+
+ (let [v (transient (vector 1 2))]
+    (time (dotimes [_ 1000000]
+            (conj! v 1))))
+ "Elapsed time: 13.674 msecs"
+
+ (let [v  (vector 1 2)]
+    (time (dotimes [_ 1000000]
+            (persistent! (conj! (transient v) 1)))))
+ "Elapsed time: 113.094 msecs"
+
+
+
+   (let [v (into  (clojure.lang.PersistentQueue/EMPTY) [1 2]) ]
+     (time (dotimes [_ 1000000]
+             (conj v 1))))
+   "Elapsed time: 44.629 msecs"
+
+   (let [v (into  (clojure.lang.PersistentQueue/EMPTY)  (double-list 1 2) ) ]
+     (time (dotimes [_ 1000000]
+             (conj v 1))))
+   "Elapsed time: 41.95 msecs"
+
+
+   (let []
+     (time (dotimes [x 1000000]
+             (.add (java.util.ArrayList.) 1))))
+   "Elapsed time: 12.27 msecs"
+
+    (let []
+     (time (dotimes [x 1000000]
+             (let [e  (java.util.ArrayList.)]
+               (.add e 1)
+               (dorun (seq e))))))
+    "Elapsed time: 117.079 msecs"
+
+
+
+
+     (let [v (into  (clojure.lang.PersistentQueue/EMPTY) [1 2]) ]
+       (time (dotimes [_ 1000000]
+               (pop v)))))
+    "Elapsed time: 19.056 msecs"
+
+     (let [v (into  (clojure.lang.PersistentQueue/EMPTY) [1 2]) ]
+      (time (dotimes [_ 1000000]
+              (next v))))
+     "Elapsed time: 64.453 msecs"
+
+
+
+
+    (let [v (fv/vector 1 2)]
+    (time (dotimes [_ 1000000]
+            (dorun (conj v 1)))))
+    "Elapsed time: 437.703 msecs"
+
+    (let [v (vector 1 2)]
+    (time (dotimes [_ 1000000]
+            (dorun (conj v 1)))))
+    "Elapsed time: 197.462 msecs"
+
+     (let [v (into  (clojure.lang.PersistentQueue/EMPTY)  (double-list 1 2) ) ]
+     (time (dotimes [_ 1000000]
+             (dorun (conj v 1)))))
+     "Elapsed time: 235.034 msecs"
+
+      (let [v (into  (clojure.lang.PersistentQueue/EMPTY) [1 2]) ]
+    (time (dotimes [_ 1000000]
+            (dorun (conj v 1)))))
+      "Elapsed time: 231.322 msecs"
+      ;; can prob be sped up past vector speed
+
+
+      (let [v (vec (range 100))]
+        (time (dotimes [_ 1000000]
+                (peek v))))
+      "Elapsed time: 8.652 msecs"
+
+
+       (let [v (into  (clojure.lang.PersistentQueue/EMPTY) [1 2]) ]
+    (time (dotimes [_ 1000000]
+            (peek v))))
+
+       "Elapsed time: 12.79 msecs"
+
+       (let [v (list 1 2 3)]
+         (time (dotimes [_ 1000000]
+                 (peek v))))
+       "Elapsed time: 6.811 msecs"
+
+        (let [v (list 1 2 3)]
+         (time (dotimes [_ 1000000]
+                 (first v))))
+        "Elapsed time: 7.636 msecs"
+
+
+    (let (clojure.lang.PersistentQueue/EMPTY))
 
 
 
@@ -244,11 +354,168 @@
    '(t/tuple (t/tuple x (t/tuple 'e y)) x) ; '[[x ['e y]] x] ;
                        ))
 
+(defn fast-rule
+  [x]
+  (if (vector? x)
+    (let [l1 (x 0)]
+      (if (vector? l1)
+        (if (= 'e  (l1 0))
+          (let [l1r (l1 1)] (t/tuple (t/tuple l1r (t/tuple 'e (x 1))) l1r))
+          )))))
+
+(defprotocol expr
+  (head [x])
+  (body [x]))
+
+
+(defn fast-rule2
+  [x]
+  (if (identical? :vector (head x))
+    (let [xb (body x)
+          l1  (xb 0)]
+      (if (identical? :vector (head l1))
+        (let [l1b (body l1)] (if (= 'e (l1b 0))
+           (let [l1r (l1b 1)] (t/tuple (t/tuple l1r (t/tuple 'e (xb 1))) l1r))
+           ))))))
+
+
+(extend-type
+    clojure.lang.PersistentVector
+  expr
+  (head [x] :vector)
+  (body [x] x))
+
+
+(extend-type
+    java.lang.Long
+  expr
+  (head [x] :long)
+  (body [x] x))
+
+(extend-type
+    clj_tuple.Tuple2
+  expr
+  (head [x] :vector)
+  (body [x] x))
+
+(extend-type
+    clojure.lang.Symbol
+  expr
+  (head [x] :symbol)
+  (body [x] x))
+
+
+(def the-count (atom 0))
+
+(defn the-rule-counting [x]
+  (swap! the-count + 1)
+  (the-rule x))
+
 (comment
   (def result (let []
                (iterate  #(replace-all % the-rule)
                           (t/tuple (t/tuple (t/tuple 'e (t/tuple (t/tuple 'e 'e) 'e)) 'e)  'e) ; '[ [ [e [ [e e] e] ] e]   e]
-                         )))
+                          )))
+
+
+
+  (time (do (nth result 300) 1))
+
+  (def result2 (let []
+               (iterate  #(replace-all % fast-rule)
+                          (t/tuple (t/tuple (t/tuple 'e (t/tuple (t/tuple 'e 'e) 'e)) 'e)  'e) ; '[ [ [e [ [e e] e] ] e]   e]
+                          )))
+
+   (time (do (nth result2 300) 1))
+
+     (def result3 (let []
+               (iterate  #(replace-all % fast-rule2)
+                          (t/tuple (t/tuple (t/tuple 'e (t/tuple (t/tuple 'e 'e) 'e)) 'e)  'e) ; '[ [ [e [ [e e] e] ] e]   e]
+                          )))
+
+   (time (do (nth result3 300) 1))
+
+
+   (time (dotimes [x 1000000] (the-rule [1 2])))
+   "Elapsed time: 164.016 msecs"
+
+   ;;at least half time taken up in rule check
+
+
+   (time (dotimes [_ 1000000]
+           (vector? [1])))
+   "Elapsed time: 4.17 msecs"
+
+   (time (dotimes [x 1000000]
+           (identical? x :1)))
+   "Elapsed time: 3.687 msecs"
+
+
+   (time (dotimes [_ 1000000]
+           (vector? (first [[1]]))))
+   "Elapsed time: 60.162 msecs"
+
+   (time (dotimes [_ 1000000]
+           (vector?  [[1]])))
+   "Elapsed time: 4.182 msecs"
+
+   (defn myvector? [x] (vector? x))
+    (time (dotimes [_ 1000000]
+           (myvector?  [[1]])))
+
+     (time (dotimes [_ 1000000]
+             (first [[1]])))
+     "Elapsed time: 58.66 msecs"
+
+     (time (dotimes [_ 1000000]
+             (peek [[1]])))
+     "Elapsed time: 8.245 msecs"
+
+
+       (time (dotimes [_ 1000000]
+             ([[1]] 0)))
+    "Elapsed time: 7.269 msecs"
+
+
+    (time (dotimes [x 1000000] (the-rule 1)))
+
+   (time (dotimes [x 1000000] (the-rule [1 2])))
+   "Elapsed time: 163.692 msecs"
+   (time (dotimes [x 1000000] (the-rule [['e 1] 2])))
+   "Elapsed time: 346.717 msecs"
+
+
+   (time (dotimes [x 1000000] (fast-rule 1)))
+   "Elapsed time: 27.386 msecs"
+   ;; not inlining. should just be a vector? check
+
+   (time (dotimes [x 1000000] (fast-rule2 1)))
+   "Elapsed time: 8.815 msecs"
+
+
+
+   (time (dotimes [x 1000000] (fast-rule [1 2])))
+   (time (dotimes [x 1000000] (fast-rule [1 2])))
+   "Elapsed time: 146.882 msecs"
+   "Elapsed time: 55.964 msecs"
+   "Elapsed time: 31.188 msecs"
+
+   (time (dotimes [x 1000000] (fast-rule2 [1 2])))
+   "Elapsed time: 35.061 msecs"
+
+   (time (dotimes [x 1000000] (fast-rule [1 2])))
+
+
+
+   (time (dotimes [x 1000000] (fast-rule [['e 1] 2])))
+   "Elapsed time: 333.169 msecs"
+   ;; with vector as fn
+   "Elapsed time: 151.368 msecs"
+   "Elapsed time: 75.217 msecs"
+
+
+   (time (dotimes [x 1000000] (fast-rule2 [['e 1] 2])))
+   "Elapsed time: 104.589 msecs"
 
 (def bigresult (nth result 300))
 
@@ -281,6 +548,12 @@
  "Elapsed time: 521.092 msecs"
  ;; with tuple
  "Elapsed time: 374.325 msecs"
+ ;; fastest time with fixed up
+ "Elapsed time: 344.235 msecs"
+ ;; fasted time with fast-rule2
+ "Elapsed time: 319.347 msecs"
+
+ ;; time in mathematica?
 
 
 
@@ -385,7 +658,37 @@
 "Elapsed time: 967.383 msecs"
 ;; assuming everything is a vec
 "Elapsed time: 792.175 msecs"
+;; current
+"Elapsed time: 3.808 msecs"
 
+
+(let [init (z/vector-zip bigresult)]
+  (time
+   (loop [loc init]
+     (the-rule (.node loc))
+     (if (z/end? loc)
+       true
+       (recur (z/next loc))))))
+"Elapsed time: 34.092 msecs"
+
+
+(let [init (z/vector-zip bigresult)]
+  (time
+   (loop [loc init]
+     (fast-rule (.node loc))
+     (if (z/end? loc)
+       true
+       (recur (z/next loc))))))
+"Elapsed time: 30.996 msecs"
+
+
+(let [init (z/vector-zip bigresult)]
+  (time
+   (loop [loc init]
+     (fast-rule2 (.node loc))
+     (if (z/end? loc)
+       true
+       (recur (z/next loc))))))
 
 
 (defrecord Test [a])
@@ -478,6 +781,8 @@
          (recur (pop stack)))
        true)))
   "Elapsed time: 10.414 msecs"
+  "Elapsed time: 3.924 msecs"
+
    (time
    (loop [stack bigresult]
      (if-let [top (first stack)]
@@ -486,6 +791,8 @@
          (recur (next stack)))
        true)))
    "Elapsed time: 5.573 msecs"
+   "Elapsed time: 5.077 msecs"
+
 
    (let [s (java.util.Stack.)]
      (.push s bigresult)
@@ -533,6 +840,8 @@
 
     (time (dotimes [x 10000] x))
     "Elapsed time: 0.251 msecs"
+
+
 
     (time (dotimes [x  100000] 1))
 

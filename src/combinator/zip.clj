@@ -93,7 +93,13 @@
         (ZipperLocation.
 
           (first cs)
-          (ZipperPath. [] (clojure.core/next cs) path (if path (conj (.pnodes path) node) [node]) nil))))))
+          (ZipperPath. []
+                       (clojure.core/next cs)
+                       path
+                       (if path
+                         (conj (.pnodes path) node)
+                         [node])
+                       nil))))))
 
 (defn up
   "Returns the loc of the parent of the node at this loc, or nil if at the top"
@@ -104,8 +110,19 @@
         (if (.changed? path)
           (ZipperLocation.
 
-            (make-node loc pnode (concat (.l path) (cons node (.r path))))
-            (if-let [ppath (.ppath path)] (assoc ppath :changed? true)))
+           (make-node loc
+                      pnode
+                      (concat
+                       (.l path) ;; should still be a vector
+                       (cons node
+                             (.r path))))
+           (if-let [ppath ^ZipperPath (.ppath path)]
+             (ZipperPath.
+              (.l ppath)
+              (.r ppath)
+              (.ppath ppath)
+              (.pnodes ppath)
+              true)))
           (ZipperLocation.
 
             pnode
@@ -198,7 +215,13 @@
   (ZipperLocation.
 
     node
-    (if-let [path (.path loc)] (assoc path :changed? true))))
+    (if-let [path ^ZipperPath (.path loc)]
+      (ZipperPath.
+              (.l path)
+              (.r path)
+              (.ppath path)
+              (.pnodes path)
+              true))))
 
 (defn insert-child
   "Inserts the item as the leftmost child of the node at this loc, without moving"

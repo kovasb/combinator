@@ -11,4 +11,5 @@
                  [fast-zip "0.3.0"]
                  [clj-tuple "0.1.3-SNAPSHOT"] ;[clj-tuple "0.1.2"]
                  [org.clojure/data.finger-tree "0.0.1"]
+                 [org.clojure/core.rrb-vector "0.0.9"]
                  ])
