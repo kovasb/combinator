@@ -444,7 +444,12 @@
 
 
 
+  (def result (time
+               (loop [i 0 term (list (list (list :e (list (list :e :e) :e)) :e)  :e)]
+                 (when-not (> i 300)
+                   (recur (+ 1 i) (replace-all term fast-rule)))))
 
+    )
 
 
 
