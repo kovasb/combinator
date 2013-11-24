@@ -129,4 +129,8 @@ A macro rule compiler would make it easy to benchmark with different combinator 
 
 It would be very interested to benchmark this against systems like Maude, Stratego, ASF+SDF, OMeta, and K. Sample code and instructions to this effect is very welcome.
 
+# Thanks
+
+Special thanks to David Nolen for help optimizing the clojurescript version.
+
 
