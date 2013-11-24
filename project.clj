@@ -3,13 +3,27 @@
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :jvm-opts ["-server"
-             "-Xmx1G"]
+  :jvm-opts ^:replace ["-server"  "-Xmx1G"]
   :dependencies [
                  [org.clojure/clojure "1.5.1"]
-                 [org.clojure/core.match "0.2.0"]
                  [fast-zip "0.3.0"]
-                 [clj-tuple "0.1.3-SNAPSHOT"] ;[clj-tuple "0.1.2"]
-                 [org.clojure/data.finger-tree "0.0.1"]
-                 [org.clojure/core.rrb-vector "0.0.9"]
-                 ])
+                 [clj-tuple "0.1.3-SNAPSHOT"]
+                 [criterium "0.4.2"]
+                 [org.clojure/clojurescript "0.0-2030"]
+
+                 ]
+  :source-paths ["src/clj"]
+   :cljsbuild
+  {
+   :builds [{
+             :id "combinator"
+             ;; The path to the top-level ClojureScript source directory:
+             :source-paths ["src/cljs"]
+             ;; The standard ClojureScript compiler options:
+             ;; (See the ClojureScript compiler documentation for details.)
+             :compiler {:output-dir "out"
+                        :output-to "combinator.js"
+                        :static-fns true
+                        :optimizations :advanced}}]}
+
+  :plugins [[lein-cljsbuild "1.0.0-alpha2"]])
