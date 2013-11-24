@@ -29,6 +29,12 @@ e[x_][y_]->x[e[y]][x]
 
 where x_ and y_ are wildcards that will match any subtree in those positions. 
 
+```
+e[e][e]  ;; matches rule
+e[e[e]][e] ;; matches rule
+e[e][e][e] ;; does not match
+```
+
 Different right-hand-sides of the rules will generate different behavior, in terms of the final result, the pattern of recursion, and ultimately patterns of memory access and method invocation.
 
 For the moment we are using only the sample combinator shown above, but a more rigorous test would enumerate all possible combinators up to a certain rhs tree size.
@@ -84,7 +90,9 @@ To make the combinator rule as fast as possible, encode the rule in a low-level 
 that checks the structure of an input against the desired structure of e[x_][y_] (equivalently, '((:e ?x) ?y)  ), and returns a new tree if it succeeds.
 
 
-# performances
+# performance
+
+
 
 # lessons learned
 
