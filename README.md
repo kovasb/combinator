@@ -123,7 +123,7 @@ Additional performance gains were achieved by
 
 Further optimizations are possible by taking advantage of traversal strategy, which should only ever call up from the rightmost child.
 
-# Further workd
+# Further work
 
 A macro rule compiler would make it easy to benchmark with different combinator rules with different behavior.
 
