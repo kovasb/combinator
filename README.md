@@ -9,19 +9,16 @@ It aims to evolve a simple combinator-like system as quickly as possible, in clo
 
 For our benchmarks, we are using the simple combinator-like systems defined at https://www.wolframscience.com/nksonline/section-3.10 .
 
-These combinators iteratively rewrite a binary tree, via a pre-order traversal that performs all non-overlapping rewrites.
+These combinators iteratively rewrite a binary tree; each iteration is a pre-order traversal that performs all non-overlapping rewrites.
 
 The nodes in the binary tree consist of either the symbol constant e, or a node with two children that again satisfy the criteria.
 
 In Mathematica notation, these trees are expressed as
 
 ```
-;; node consistent of single atomic element
-e
-;; node consisting of two atomic elements
-e[e]
-;; two-level tree, with e[e] as the left branch, and e as the right branch
-;; e[e][e] 
+e        ;; node consistent of single atomic element
+e[e]     ;; node consisting of two atomic children 
+e[e][e]  ;; two-level tree, with e[e] as the left branch, and e as the right branch
 ```
 
 The combinators themselves are expressed as rules like
@@ -30,7 +27,7 @@ The combinators themselves are expressed as rules like
 e[x_][y_]->x[e[y]][x]
 ```
 
-Where x_ and y_ are wildcards that will match any subtree in those positions. 
+where x_ and y_ are wildcards that will match any subtree in those positions. 
 
 Different right-hand-sides of the rules will generate different behavior, in terms of the final result, the pattern of recursion, and ultimately patterns of memory access and method invocation.
 
@@ -42,7 +39,7 @@ Starting from the initial condition
 e[e[e][e]][e][e]
 ```
 
-the first tree of evolution are
+the first three steps of evolution are
 
 ```
 e[e][e][e[e]][e[e][e]][e]
@@ -50,31 +47,41 @@ e[e[e]][e][e[e]][e[e[e]][e]][e]
 e[e][e[e]][e[e]][e[e]][e[e][e[e]][e[e]]][e]
 ```
 
+# Representation and implementation in clojure
+
 In general, and for this rule in particular, the evolution will not reach a fixed-point. Therefore we cannot implement the combinator as a naive recursive function because it will never return.   
 
+Furthermore, we cannot use a recursive function like clojure.walk to drive the traversal, because we will quickly blow the stack.
 
-This rule matches e[e][e], but does not match e[e][e][e]
- 
- 
-where e is a symbol constant, and x and y are wildcards. 
+Zippers are the ideal solution, and most of the work in this project is to optimize the zipper implementation.
 
-The initial condition is
+To represent the binary trees, we use seq'able datastructures.
 
+Thus,
+
+```
 e[e[e][e]][e][e]
+```
 
-e[e[e][e]][e][e]
+is represented as
 
+```
+`(((:e ((:e :e) :e)) :e) :e)
+```
 
-A single iteration consists of a depth-first search of the tree, attempting to match the LHS of the pattern. If a match is found, we substitute the RHS of the rule into the tree, and continue the traversal to perform all non-overlapping replacements. 
+To make the combinator rule as fast as possible, encode the rule in a low-level form
 
-Note that this is a binary tree, where each node is either the symbol constant e, or a node with two children that again may be either e or another such node.
+```
+(defn sample-combinator
+  [x]
+  (if (seq? x)
+    (let [l1 (first x)]
+      (if (seq? l1)
+        (if (identical? :e  (first l1))
+          (let [l1r (second l1)] (list (list l1r (list :e (second x))) l1r)))))))
+```
 
-In clojure, we chose to represent these trees as lists and keywords:
-
-e[e[e][e]][e][e]
-->
-(((:e ((:e :e) :e)) :e) :e)
-
+that checks the structure of an input against the desired structure of e[x_][y_] (equivalently, '((:e ?x) ?y)  ), and returns a new tree if it succeeds.
 
 
 # performances
