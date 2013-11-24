@@ -3,8 +3,6 @@
 This project is an experiment in fast term-rewriting in clojure. Its goal is to establish the upper bound on term-rewriting performance in clojure and clojurescript.
 
 
-It aims to evolve a simple combinator-like system as quickly as possible, in clojure and clojurescript.
-
 # the combinator system
 
 For our benchmarks, we are using the simple combinator-like systems defined at https://www.wolframscience.com/nksonline/section-3.10 .
@@ -18,7 +16,7 @@ In Mathematica notation, these trees are expressed as
 ```
 e        ;; node consistent of single atomic element
 e[e]     ;; node consisting of two atomic children 
-e[e][e]  ;; two-level tree, with e[e] as the left branch, and e as the right branch
+e[e][e]  ;; depth-3 tree, with e[e] as the left branch, and e as the right branch
 ```
 
 The combinators themselves are expressed as rules like
