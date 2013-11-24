@@ -7,7 +7,7 @@
 
 
 (defn replace-all [init rulefn]
-  (loop [node (z/vector-zip init)]
+  (loop [node (z/zipper init)]
    (if (z/end? node)
      (z/node node)
      (if-let [m (rulefn  (z/node node))]
