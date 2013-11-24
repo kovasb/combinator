@@ -110,7 +110,7 @@ In clojure, we evolve the system with several zipper implementations: clojure.zi
 
 The performance is excellent. These results show that the Clojure platform is a good substrate for implementing rewriting systems. 
 
-Even just using fast-zip, it is around 2x Mathematica. The optimized implementations are nearly 3x for clojure, and 2x for clojurescript. This is very impressive, considering the equivalent operations in Mathematica are implemented in optimized C code. 
+Even just using fast-zip is significantly faster than Mathematica. The optimized implementations are nearly 3x faster for clojure, and 2x faster for clojurescript. This is very impressive, considering the equivalent operations in Mathematica are implemented in optimized C code. 
 
 I tried many possible datastructures, but using seqs as the basis for the zipper was by far the fastest.
 
