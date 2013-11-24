@@ -90,9 +90,9 @@ that checks the structure of an input against the desired structure of e[x_][y_]
 
 # performance
 
-![](docs/rewrite-timings1.png)
+![](doc/rewrite-timings1.png)
 
-![](docs/rewrite-timings2.png)
+![](doc/rewrite-timings2.png)
 
 # lessons learned
 
