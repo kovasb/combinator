@@ -1,5 +1,7 @@
 # combinator
 
+[![Join the chat at https://gitter.im/kovasb/combinator](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/kovasb/combinator?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 This project is an experiment in fast term-rewriting in clojure. Its goal is to establish the upper bound on term-rewriting performance in clojure and clojurescript.
 
 
